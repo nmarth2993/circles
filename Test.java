@@ -17,7 +17,6 @@ public class Test {
 		MouseCapture m = new MouseCapture();
 		panel.addMouseListener(m);
 		panel.addMouseMotionListener(m);
-		panel.createCircles();
 		frame.add(panel);
 		frame.setVisible(true);
 		frame.pack();
@@ -35,9 +34,13 @@ public class Test {
 		final static int circleCreationIntervalMin = 50;
 		final static int circleCreationIntervalMax = 300;
 
-		final static int MAX_SIZE = 30;
+		final static int MAX_SIZE = 3000;
 
 		final static int diameter = 10;
+
+		Thread circlesThread;
+		Thread tickThread;
+		Thread arrayThread;
 
 		ArrayList<ColoredCircle> circles;
 		Random r;
@@ -47,6 +50,12 @@ public class Test {
 		int red;
 		int green;
 		int blue;
+
+		boolean starburst;
+
+		public void setStarburst(boolean starburst) {
+			this.starburst = starburst;
+		}
 
 		public Point getMousePos() {
 			return mousePos;
@@ -71,7 +80,56 @@ public class Test {
 			mousePressed = false;
 			r = new Random();
 			circles = new ArrayList<ColoredCircle>();
-			new Thread(() -> {
+
+			createAndStartCircleThread();
+			createAndStartTickThread();
+			createAndStartArrayThread();
+
+		}
+
+		private void createAndStartArrayThread() {
+			arrayThread = new Thread(new Runnable() {
+				public void run() {
+					synchronized (circlesThread) {
+						try {
+							circlesThread.wait();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					synchronized (tickThread) {
+						try {
+							tickThread.wait();
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+					for (;;) {
+						if (circles.size() > MAX_SIZE) {
+//							try {
+//								circlesThread.wait();
+//								tickThread.wait();
+//							} catch (InterruptedException e) {
+//								e.printStackTrace();
+//							}
+							circles = new ArrayList<ColoredCircle>(
+									circles.subList(circles.size() - MAX_SIZE, circles.size() - 1));
+							circlesThread.notify();
+							tickThread.notify();
+						}
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			});
+			arrayThread.start();
+		}
+
+		private void createAndStartTickThread() {
+			tickThread = new Thread(() -> {
 				for (;;) {
 					ArrayList<ColoredCircle> cList = new ArrayList<ColoredCircle>(circles);
 					for (ColoredCircle c : cList) {
@@ -85,27 +143,36 @@ public class Test {
 					}
 					repaint();
 				}
-			}).start();
-			new Thread(() -> {
-				final int gradientDelay = 5;
-				for (;;) {
-
-				}
-			}).start();
+			});
+			tickThread.start();
 		}
 
-		public void createCircles() {
-			new Thread(() -> {
+		private void createAndStartCircleThread() {
+			circlesThread = new Thread(() -> {
 				for (;;) {
 					circles.add(new ColoredCircle(
-							new Ellipse2D.Double(mousePos.getX(), mousePos.getY(), diameter, diameter),
+							new Ellipse2D.Double(mousePos.getX() - diameter / 2, mousePos.getY() - diameter / 2,
+									diameter, diameter),
 							new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
 					if (isMousePressed()) {
-						/*
-						 * circles.add(new ColoredCircle( new Ellipse2D.Double(mousePos.getX() + 50,
-						 * mousePos.getY(), diameter, diameter), new Color(r.nextInt(256),
-						 * r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
-						 */
+						if (starburst) {
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - diameter / 2 + 50,
+											mousePos.getY() - diameter / 2, diameter, diameter),
+									new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - diameter / 2 - 50,
+											mousePos.getY() - diameter / 2, diameter, diameter),
+									new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - diameter / 2,
+											mousePos.getY() - diameter / 2 - 50, diameter, diameter),
+									new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - diameter / 2,
+											mousePos.getY() - diameter / 2 + 50, diameter, diameter),
+									new Color(r.nextInt(256), r.nextInt(256), r.nextInt(256)), r.nextInt(9) + 1));
+						}
 						try {
 							Thread.sleep(3);
 						} catch (InterruptedException e) {
@@ -119,19 +186,18 @@ public class Test {
 						}
 					}
 				}
-			}).start();
+			});
+			circlesThread.start();
+		}
+
+		public ArrayList<ColoredCircle> getCircleList() {
+			return circles;
 		}
 
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			Graphics2D g2d = (Graphics2D) g;
 			ArrayList<ColoredCircle> drawingShapes = new ArrayList<ColoredCircle>(circles);
-
-			/*
-			 * if (circles.size() > MAX_SIZE) { drawingShapes = new
-			 * ArrayList<ColoredCircle>( circles.subList(circles.size() - MAX_SIZE,
-			 * circles.size() - 1)); }
-			 */
 
 			panel.setBackground(new Color(red, green, blue));
 
@@ -143,6 +209,18 @@ public class Test {
 	}
 
 	class MouseCapture implements MouseMotionListener, MouseListener {
+		int cycle;
+
+		public MouseCapture() {
+			cycle = 0;
+		}
+
+		public void nextCycle() {
+			cycle++;
+			if (cycle > 3) {
+				cycle = 0;
+			}
+		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
@@ -159,9 +237,24 @@ public class Test {
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (SwingUtilities.isRightMouseButton(e)) {
-				ColoredCircle.setGrowing((!ColoredCircle.isGrowing()));
+				if (cycle == 0) {
+					ColoredCircle.setGrowing(false);
+					panel.setStarburst(false);
+				} else if (cycle == 1) {
+					ColoredCircle.setGrowing(true);
+					panel.setStarburst(false);
+				} else if (cycle == 2) {
+					panel.setStarburst(true);
+					ColoredCircle.setGrowing(false);
+				} else {
+					panel.setStarburst(true);
+					ColoredCircle.setGrowing(true);
+				}
+				nextCycle();
+
 				return;
 			}
+
 			/*
 			 * if (SwingUtilities.isMiddleMouseButton(e)) {
 			 * panel.setMiddleMousePressed(true); }
