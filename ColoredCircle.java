@@ -15,10 +15,6 @@ public class ColoredCircle {
 	private int sizeTick;
 	private int distanceTick;
 
-	public ColoredCircle() {
-
-	}
-
 	public ColoredCircle(Ellipse2D c1, Color c2, boolean up, boolean down, boolean left, boolean right) {
 		circle = c1;
 		color = c2;
