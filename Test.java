@@ -84,41 +84,21 @@ public class Test {
 			createAndStartCircleThread();
 			createAndStartTickThread();
 			createAndStartArrayThread();
-
 		}
 
 		private void createAndStartArrayThread() {
 			arrayThread = new Thread(new Runnable() {
 				public void run() {
-					synchronized (circlesThread) {
-						try {
-							circlesThread.wait();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-					synchronized (tickThread) {
-						try {
-							tickThread.wait();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
 					for (;;) {
 						if (circles.size() > MAX_SIZE) {
-//							try {
-//								circlesThread.wait();
-//								tickThread.wait();
-//							} catch (InterruptedException e) {
-//								e.printStackTrace();
-//							}
-							circles = new ArrayList<ColoredCircle>(
-									circles.subList(circles.size() - MAX_SIZE, circles.size() - 1));
-							circlesThread.notify();
-							tickThread.notify();
+							synchronized (circles) {
+
+								circles = new ArrayList<ColoredCircle>(new ArrayList<ColoredCircle>(circles)
+										.subList(circles.size() - MAX_SIZE, circles.size() - 1));
+							}
 						}
 						try {
-							Thread.sleep(5000);
+							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
