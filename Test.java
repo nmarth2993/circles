@@ -17,6 +17,7 @@ public class Test {
 		MouseCapture m = new MouseCapture();
 		panel.addMouseListener(m);
 		panel.addMouseMotionListener(m);
+		panel.setBackground(Color.BLACK);
 		frame.add(panel);
 		frame.setVisible(true);
 		frame.pack();
@@ -36,7 +37,7 @@ public class Test {
 
 		final static int cycleRate = 5;
 
-		final static int MAX_SIZE = 3000;
+		final static int MAX_SIZE = 7000;
 
 		final static int diameter = 10;
 
@@ -162,7 +163,7 @@ public class Test {
 							}
 						}
 						try {
-							Thread.sleep(1000);
+							Thread.sleep(3000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -175,10 +176,12 @@ public class Test {
 		private void createAndStartTickThread() {
 			tickThread = new Thread(() -> {
 				for (;;) {
-					ArrayList<ColoredCircle> cList = new ArrayList<ColoredCircle>(circles);
-					for (ColoredCircle c : cList) {
-						c.tick();
-						// TODO: got an NPE on this line: look into that
+					synchronized (circles) {
+						ArrayList<ColoredCircle> cList = new ArrayList<ColoredCircle>(circles);
+						for (ColoredCircle c : cList) {
+							c.tick();
+							// TODO: got an NPE on this line: look into that
+						}
 					}
 
 					try {
@@ -197,25 +200,25 @@ public class Test {
 				for (;;) {
 					circles.add(new ColoredCircle(new Ellipse2D.Double(mousePos.getX() - diameter / 2,
 							mousePos.getY() - diameter / 2, diameter, diameter), bgColor, r.nextInt(9) + 1));
+					if (starburst) {
+						circles.add(new ColoredCircle(
+								new Ellipse2D.Double(mousePos.getX() - diameter / 2 + 50,
+										mousePos.getY() - diameter / 2, diameter, diameter),
+								bgColor, r.nextInt(9) + 1));
+						circles.add(new ColoredCircle(
+								new Ellipse2D.Double(mousePos.getX() - diameter / 2 - 50,
+										mousePos.getY() - diameter / 2, diameter, diameter),
+								bgColor, r.nextInt(9) + 1));
+						circles.add(new ColoredCircle(
+								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
+										mousePos.getY() - diameter / 2 - 50, diameter, diameter),
+								bgColor, r.nextInt(9) + 1));
+						circles.add(new ColoredCircle(
+								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
+										mousePos.getY() - diameter / 2 + 50, diameter, diameter),
+								bgColor, r.nextInt(9) + 1));
+					}
 					if (isMousePressed()) {
-						if (starburst) {
-							circles.add(new ColoredCircle(
-									new Ellipse2D.Double(mousePos.getX() - diameter / 2 + 50,
-											mousePos.getY() - diameter / 2, diameter, diameter),
-									bgColor, r.nextInt(9) + 1));
-							circles.add(new ColoredCircle(
-									new Ellipse2D.Double(mousePos.getX() - diameter / 2 - 50,
-											mousePos.getY() - diameter / 2, diameter, diameter),
-									bgColor, r.nextInt(9) + 1));
-							circles.add(new ColoredCircle(
-									new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-											mousePos.getY() - diameter / 2 - 50, diameter, diameter),
-									bgColor, r.nextInt(9) + 1));
-							circles.add(new ColoredCircle(
-									new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-											mousePos.getY() - diameter / 2 + 50, diameter, diameter),
-									bgColor, r.nextInt(9) + 1));
-						}
 						try {
 							Thread.sleep(3);
 						} catch (InterruptedException e) {
