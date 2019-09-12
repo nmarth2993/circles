@@ -17,6 +17,7 @@ public class Test {
 		MouseCapture m = new MouseCapture();
 		panel.addMouseListener(m);
 		panel.addMouseMotionListener(m);
+		frame.addKeyListener(new kbListen());
 		panel.setBackground(Color.BLACK);
 		frame.add(panel);
 		frame.setVisible(true);
@@ -51,11 +52,26 @@ public class Test {
 
 		Point mousePos;
 
+		int degrees;
+		
 		int red;
 		int green;
 		int blue;
 
 		boolean starburst;
+		boolean rotate;
+
+		public void setDegrees(int degrees) {
+			this.degrees = degrees;
+		}
+		
+		public boolean isRotate() {
+			return rotate;
+		}
+
+		public void setRotate(boolean rotate) {
+			this.rotate = rotate;
+		}
 
 		public void setStarburst(boolean starburst) {
 			this.starburst = starburst;
@@ -90,6 +106,23 @@ public class Test {
 			createAndStartCircleThread();
 			createAndStartTickThread();
 			createAndStartArrayThread();
+			
+			createAndStartRotationThread();
+		}
+		
+		private void createAndStartRotationThread() {
+			new Thread(() -> {
+				for (;;) {
+					if (rotate) {
+						degrees++;
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+			}).start();
 		}
 
 		private void cycleColors() {
@@ -202,8 +235,8 @@ public class Test {
 							mousePos.getY() - diameter / 2, diameter, diameter), bgColor, r.nextInt(9) + 1));
 					if (starburst) {
 						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - diameter / 2 + 50,
-										mousePos.getY() - diameter / 2, diameter, diameter),
+								new Ellipse2D.Double((mousePos.getX() + 50) * (rotate ? Math.cos(Math.toRadians(degrees)) : 1) - diameter / 2,
+										(mousePos.getY() * (rotate ? Math.sin(Math.toRadians(degrees)) : 1)) - diameter / 2, diameter, diameter),
 								bgColor, r.nextInt(9) + 1));
 						circles.add(new ColoredCircle(
 								new Ellipse2D.Double(mousePos.getX() - diameter / 2 - 50,
@@ -331,5 +364,32 @@ public class Test {
 			panel.setMousePos(e.getPoint());
 		}
 
+	}
+	
+	class kbListen implements KeyListener {
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyChar() == 'c') {
+				synchronized (panel.getCircleList()) {
+					panel.getCircleList().clear();
+				}
+			}
+			else if (e.getKeyChar() == 'r') {
+				panel.setDegrees(0);
+				panel.setRotate(!panel.isRotate());
+			}
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			
+		}
+
+		@Override
+		public void keyTyped(KeyEvent e) {
+			
+		}
+		
 	}
 }
