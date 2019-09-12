@@ -368,9 +368,7 @@ public class Test {
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			if (SwingUtilities.isLeftMouseButton(e)) {
-				mousePressed(e);
-			}
+			mousePressed(e);
 			mouseMoved(e);
 		}
 
