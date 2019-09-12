@@ -35,13 +35,12 @@ public class Test {
 	class ArtPanel extends JPanel {
 		final static int circleCreationIntervalMin = 50;
 		final static int circleCreationIntervalMax = 300;
-		
 
 		final static int cycleRate = 5;
 
-		final static int MAX_SIZE = 7000;
+		final static int MAX_LIST_SIZE = 7000;
 
-		final static int diameter = 10;
+		final static int size = 10;
 
 		Thread circlesThread;
 		Thread tickThread;
@@ -53,25 +52,24 @@ public class Test {
 
 		Point mousePos;
 
-
 		double x1;
 		double y1;
-		
+
 		int degrees;
-		
+
 		int red;
 		int green;
 		int blue;
-		
-		int radius = 50;
-		
+
+		int orbitRadius = 50;
+
 		boolean starburst;
 		boolean rotate;
 
 		public void setDegrees(int degrees) {
 			this.degrees = degrees;
 		}
-		
+
 		public boolean isRotate() {
 			return rotate;
 		}
@@ -109,24 +107,27 @@ public class Test {
 			circles = new ArrayList<ColoredCircle>();
 
 			cycleColors();
+			bgColor = Color.WHITE;
 
 			createAndStartCircleThread();
 			createAndStartTickThread();
 			createAndStartArrayThread();
-			
+
 			createAndStartDegreesThread();
 		}
-		
+
 		private void createAndStartDegreesThread() {
 			new Thread(() -> {
+				degrees = 0;
 				for (;;) {
-					if (rotate) {
-						degrees++;
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
+					degrees++;
+					if (degrees > 360) {
+						degrees = 0;
+					}
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
 				}
 			}).start();
@@ -195,11 +196,11 @@ public class Test {
 			arrayThread = new Thread(new Runnable() {
 				public void run() {
 					for (;;) {
-						if (circles.size() > MAX_SIZE) {
+						if (circles.size() > MAX_LIST_SIZE) {
 							synchronized (circles) {
 								int size = circles.size();
 								circles = new ArrayList<ColoredCircle>(
-										new ArrayList<ColoredCircle>(circles).subList(size - MAX_SIZE, size));
+										new ArrayList<ColoredCircle>(circles).subList(size - MAX_LIST_SIZE, size));
 							}
 						}
 						try {
@@ -219,8 +220,9 @@ public class Test {
 					synchronized (circles) {
 						ArrayList<ColoredCircle> cList = new ArrayList<ColoredCircle>(circles);
 						for (ColoredCircle c : cList) {
-							c.tick();
-							// TODO: got an NPE on this line: look into that
+							if (c != null) {
+								c.tick();
+							}
 						}
 					}
 
@@ -238,33 +240,58 @@ public class Test {
 		private void createAndStartCircleThread() {
 			circlesThread = new Thread(() -> {
 				for (;;) {
-					circles.add(new ColoredCircle(new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-							mousePos.getY() - diameter / 2, diameter, diameter), bgColor, r.nextInt(9) + 1));
+					circles.add(new ColoredCircle(
+							new Ellipse2D.Double(mousePos.getX() - size / 2, mousePos.getY() - size / 2, size, size),
+							bgColor, r.nextInt(9) + 1));
 					if (starburst) {
+
+						/*
+						 * for (int offset = 0; offset < 360; offset += 90) {
+						 * 
+						 * circles.add(new ColoredCircle(new Ellipse2D.Double( mousePos.getX() + (rotate
+						 * ? radius * Math.cos(Math.toRadians(degrees + offset)) : (offset == 90 ||
+						 * offset == 270) ? 0 : offset == 0 ? 50 : -50) - diameter / 2, mousePos.getY()
+						 * + (rotate ? radius * Math.sin(Math.toRadians(degrees + offset)) : (offset ==
+						 * 0 || offset == 180) ? 0 : offset == 90 ? 50 : -50) - diameter / 2, diameter,
+						 * diameter), bgColor, r.nextInt(9) + 1)); }
+						 */
+
 						if (rotate) {
-							x1 = radius * Math.cos(Math.toRadians(degrees));
-							y1 = radius * Math.sin(Math.toRadians(degrees));
+							for (int offset = 0; offset < 360; offset += 90) {
+//							circles.add(new ColoredCircle(new Ellipse2D.Double(
+//									mousePos.getX() + radius * Math.cos(Math.toRadians(degrees + offset)) - size / 2,
+//									mousePos.getY() + radius * Math.sin(Math.toRadians(degrees + offset)) - size / 2,
+//									size, size), bgColor, r.nextInt(9) + 1));
+
+								double x = orbitRadius * Math.cos(Math.toRadians(degrees + offset));
+								double y = orbitRadius * Math.sin(Math.toRadians(degrees + offset));
+								circles.add(new ColoredCircle(
+										new Ellipse2D.Double(mousePos.getX() - size / 2 + x,
+												mousePos.getY() - size / 2 + y, size, size),
+										bgColor, r.nextInt(9) + 1));
+							}
+						} else {
+
+							circles.add(
+									new ColoredCircle(
+											new Ellipse2D.Double(mousePos.getX() + (orbitRadius - x1) - size / 2,
+													mousePos.getY() - size / 2, size, size),
+											bgColor, r.nextInt(9) + 1));
+							circles.add(
+									new ColoredCircle(
+											new Ellipse2D.Double(mousePos.getX() - (orbitRadius - x1) - size / 2,
+													mousePos.getY() - size / 2, size, size),
+											bgColor, r.nextInt(9) + 1));
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - size / 2,
+											mousePos.getY() - size / 2 - (orbitRadius - y1), size, size),
+									bgColor, r.nextInt(9) + 1));
+							circles.add(new ColoredCircle(
+									new Ellipse2D.Double(mousePos.getX() - size / 2,
+											mousePos.getY() - size / 2 + (orbitRadius - y1), size, size),
+									bgColor, r.nextInt(9) + 1));
+
 						}
-						else {
-							x1 = 1;
-							y1 = 1;
-						}
-						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() + (radius - x1) - diameter / 2,
-										mousePos.getY() - diameter / 2, diameter, diameter),
-								bgColor, r.nextInt(9) + 1));
-						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - (radius - x1) - diameter / 2,
-										mousePos.getY()- diameter / 2, diameter, diameter),
-								bgColor, r.nextInt(9) + 1));
-						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-										mousePos.getY() - diameter / 2 - (radius - y1), diameter, diameter),
-								bgColor, r.nextInt(9) + 1));
-						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-										mousePos.getY() - diameter / 2 + (radius - y1), diameter, diameter),
-								bgColor, r.nextInt(9) + 1));
 					}
 					if (isMousePressed()) {
 						try {
@@ -378,7 +405,7 @@ public class Test {
 		}
 
 	}
-	
+
 	class kbListen implements KeyListener {
 
 		@Override
@@ -387,8 +414,7 @@ public class Test {
 				synchronized (panel.getCircleList()) {
 					panel.getCircleList().clear();
 				}
-			}
-			else if (e.getKeyChar() == 'r') {
+			} else if (e.getKeyChar() == 'r') {
 				panel.setDegrees(0);
 				panel.setRotate(!panel.isRotate());
 			}
@@ -396,13 +422,13 @@ public class Test {
 
 		@Override
 		public void keyReleased(KeyEvent e) {
-			
+
 		}
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			
+
 		}
-		
+
 	}
 }
