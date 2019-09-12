@@ -1,0 +1,20 @@
+Circles
+=======
+
+Description
+-----------
+A program that focuses on simple animation of circles
+
+Guide
+-----
+
+Right click cycles through modes (see below)
+'c' key clears all circles
+'r' key toggles rotation
+
+Modes
+-----
+1. Single-stream, constant size
+2. Single-stream, growing in size
+3. Starburst (multi-stream), constant in size
+4. Starburst (multi-stream), growing in size
