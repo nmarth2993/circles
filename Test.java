@@ -35,6 +35,7 @@ public class Test {
 	class ArtPanel extends JPanel {
 		final static int circleCreationIntervalMin = 50;
 		final static int circleCreationIntervalMax = 300;
+		
 
 		final static int cycleRate = 5;
 
@@ -52,12 +53,18 @@ public class Test {
 
 		Point mousePos;
 
+
+		double x1;
+		double y1;
+		
 		int degrees;
 		
 		int red;
 		int green;
 		int blue;
-
+		
+		int radius = 50;
+		
 		boolean starburst;
 		boolean rotate;
 
@@ -107,10 +114,10 @@ public class Test {
 			createAndStartTickThread();
 			createAndStartArrayThread();
 			
-			createAndStartRotationThread();
+			createAndStartDegreesThread();
 		}
 		
-		private void createAndStartRotationThread() {
+		private void createAndStartDegreesThread() {
 			new Thread(() -> {
 				for (;;) {
 					if (rotate) {
@@ -234,21 +241,29 @@ public class Test {
 					circles.add(new ColoredCircle(new Ellipse2D.Double(mousePos.getX() - diameter / 2,
 							mousePos.getY() - diameter / 2, diameter, diameter), bgColor, r.nextInt(9) + 1));
 					if (starburst) {
+						if (rotate) {
+							x1 = radius * Math.cos(Math.toRadians(degrees));
+							y1 = radius * Math.sin(Math.toRadians(degrees));
+						}
+						else {
+							x1 = 1;
+							y1 = 1;
+						}
 						circles.add(new ColoredCircle(
-								new Ellipse2D.Double((mousePos.getX() + 50) * (rotate ? Math.cos(Math.toRadians(degrees)) : 1) - diameter / 2,
-										(mousePos.getY() * (rotate ? Math.sin(Math.toRadians(degrees)) : 1)) - diameter / 2, diameter, diameter),
-								bgColor, r.nextInt(9) + 1));
-						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - diameter / 2 - 50,
+								new Ellipse2D.Double(mousePos.getX() + (radius - x1) - diameter / 2,
 										mousePos.getY() - diameter / 2, diameter, diameter),
 								bgColor, r.nextInt(9) + 1));
 						circles.add(new ColoredCircle(
-								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-										mousePos.getY() - diameter / 2 - 50, diameter, diameter),
+								new Ellipse2D.Double(mousePos.getX() - (radius - x1) - diameter / 2,
+										mousePos.getY()- diameter / 2, diameter, diameter),
 								bgColor, r.nextInt(9) + 1));
 						circles.add(new ColoredCircle(
 								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
-										mousePos.getY() - diameter / 2 + 50, diameter, diameter),
+										mousePos.getY() - diameter / 2 - (radius - y1), diameter, diameter),
+								bgColor, r.nextInt(9) + 1));
+						circles.add(new ColoredCircle(
+								new Ellipse2D.Double(mousePos.getX() - diameter / 2,
+										mousePos.getY() - diameter / 2 + (radius - y1), diameter, diameter),
 								bgColor, r.nextInt(9) + 1));
 					}
 					if (isMousePressed()) {
