@@ -9,7 +9,9 @@ Guide
 -----
 
 Right click cycles through modes (see below)
+
 'c' key clears all circles
+
 'r' key toggles rotation
 
 Modes
