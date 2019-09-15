@@ -65,6 +65,15 @@ public class Test {
 
 		boolean starburst;
 		boolean rotate;
+		boolean divergent;
+
+		public boolean isDivergent() {
+			return divergent;
+		}
+
+		public void setDivergent(boolean divergence) {
+			this.divergent = divergence;
+		}
 
 		public void setDegrees(int degrees) {
 			this.degrees = degrees;
@@ -114,6 +123,42 @@ public class Test {
 			createAndStartArrayThread();
 
 			createAndStartDegreesThread();
+			createAndStartDivergenceThread();
+		}
+
+		private void createAndStartDivergenceThread() {
+			new Thread(() -> {
+				for (;;) {
+					try {
+						Thread.sleep(0);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (divergent) {
+						for (int i = 0; i < 2; i++) {
+							if (!divergent) {
+								break; // meh, this is fine: more succinct
+							}
+							for (int j = 0; j < 50; j++) {
+								if (!divergent) {
+									orbitRadius = 50;
+									break;
+								}
+								if (i == 0) {
+									orbitRadius++;
+								} else {
+									orbitRadius--;
+								}
+								try {
+									Thread.sleep(50);
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							}
+						}
+					}
+				}
+			}).start();
 		}
 
 		private void createAndStartDegreesThread() {
@@ -204,7 +249,7 @@ public class Test {
 							}
 						}
 						try {
-							Thread.sleep(3000);
+							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
@@ -417,6 +462,8 @@ public class Test {
 			} else if (e.getKeyChar() == 'r') {
 				panel.setDegrees(0);
 				panel.setRotate(!panel.isRotate());
+			} else if (e.getKeyChar() == 'd') {
+				panel.setDivergent(!panel.isDivergent());
 			}
 		}
 
