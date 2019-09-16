@@ -14,6 +14,8 @@ Right click cycles through modes (see below)
 
 'r' key toggles rotation of circles in starburst mode
 
+'d' key toggles of changing orbit distance of circles in starburst mode
+
 Modes
 -----
 1. Single-stream, constant size
