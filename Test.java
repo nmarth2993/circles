@@ -6,10 +6,16 @@ import java.util.*;
 import javax.swing.*;
 
 public class Test {
+	final String[] infoMsg = { "Right click - Toggles mode", "r - toggles orbiting circle rotation",
+			"d - toggles changing obiting path",
+			"c - clears all circles" + "\n" + "\n" + "Fullscreen for a better effect!" };
+
 	JFrame frame;
 	ArtPanel panel;
 
 	public Test() {
+		JOptionPane.showMessageDialog(frame, setInfoMessage(), "Controls", JOptionPane.INFORMATION_MESSAGE);
+
 		frame = new JFrame();
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setPreferredSize(new Dimension(500, 500));
@@ -25,6 +31,14 @@ public class Test {
 
 	}
 
+	private String setInfoMessage() {
+		String msg = "";
+		for (int i = 0; i < infoMsg.length; i++) {
+			msg += infoMsg[i] + "\n";
+		}
+		return msg;
+	}
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
 			JFrame.setDefaultLookAndFeelDecorated(true);
@@ -34,7 +48,7 @@ public class Test {
 
 	class ArtPanel extends JPanel {
 		final static int circleCreationIntervalMin = 50;
-		final static int circleCreationIntervalMax = 300;
+		final static int circleCreationIntervalMax = 500;
 
 		final static int cycleRate = 5;
 
@@ -47,7 +61,7 @@ public class Test {
 		Thread arrayThread;
 
 		ArrayList<ColoredCircle> circles;
-		Color bgColor;
+		Color circleColor;
 		Random r;
 
 		Point mousePos;
@@ -116,7 +130,7 @@ public class Test {
 			circles = new ArrayList<ColoredCircle>();
 
 			cycleColors();
-			bgColor = Color.WHITE;
+			circleColor = Color.WHITE;
 
 			createAndStartCircleThread();
 			createAndStartTickThread();
@@ -145,9 +159,9 @@ public class Test {
 									break;
 								}
 								if (i == 0) {
-									orbitRadius++;
+									orbitRadius += 2; // XXX: change this back to 1
 								} else {
-									orbitRadius--;
+									orbitRadius -= 2; // XXX: don't forget me
 								}
 								try {
 									Thread.sleep(50);
@@ -186,7 +200,7 @@ public class Test {
 					int blue = 0;
 
 					for (; green < 255; green++) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -194,7 +208,7 @@ public class Test {
 						}
 					}
 					for (; red > 0; red--) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -202,7 +216,7 @@ public class Test {
 						}
 					}
 					for (; blue < 255; blue++) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -210,7 +224,7 @@ public class Test {
 						}
 					}
 					for (; green > 0; green--) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -218,7 +232,7 @@ public class Test {
 						}
 					}
 					for (; red < 255; red++) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -226,7 +240,7 @@ public class Test {
 						}
 					}
 					for (; blue > 0; blue--) {
-						bgColor = new Color(red, green, blue);
+						circleColor = new Color(red, green, blue);
 						try {
 							Thread.sleep(cycleRate);
 						} catch (InterruptedException e) {
@@ -287,7 +301,7 @@ public class Test {
 				for (;;) {
 					circles.add(new ColoredCircle(
 							new Ellipse2D.Double(mousePos.getX() - size / 2, mousePos.getY() - size / 2, size, size),
-							bgColor, r.nextInt(9) + 1));
+							circleColor, r.nextInt(9) + 1));
 					if (starburst) {
 
 						/*
@@ -313,7 +327,7 @@ public class Test {
 								circles.add(new ColoredCircle(
 										new Ellipse2D.Double(mousePos.getX() - size / 2 + x,
 												mousePos.getY() - size / 2 + y, size, size),
-										bgColor, r.nextInt(9) + 1));
+										circleColor, r.nextInt(9) + 1));
 							}
 						} else {
 
@@ -321,20 +335,20 @@ public class Test {
 									new ColoredCircle(
 											new Ellipse2D.Double(mousePos.getX() + (orbitRadius - x1) - size / 2,
 													mousePos.getY() - size / 2, size, size),
-											bgColor, r.nextInt(9) + 1));
+											circleColor, r.nextInt(9) + 1));
 							circles.add(
 									new ColoredCircle(
 											new Ellipse2D.Double(mousePos.getX() - (orbitRadius - x1) - size / 2,
 													mousePos.getY() - size / 2, size, size),
-											bgColor, r.nextInt(9) + 1));
+											circleColor, r.nextInt(9) + 1));
 							circles.add(new ColoredCircle(
 									new Ellipse2D.Double(mousePos.getX() - size / 2,
 											mousePos.getY() - size / 2 - (orbitRadius - y1), size, size),
-									bgColor, r.nextInt(9) + 1));
+									circleColor, r.nextInt(9) + 1));
 							circles.add(new ColoredCircle(
 									new Ellipse2D.Double(mousePos.getX() - size / 2,
 											mousePos.getY() - size / 2 + (orbitRadius - y1), size, size),
-									bgColor, r.nextInt(9) + 1));
+									circleColor, r.nextInt(9) + 1));
 
 						}
 					}
